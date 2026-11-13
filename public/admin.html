@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Painel de links</title>
+<style>
+  :root {
+    --bg: #faf8f4; --card: #ffffff; --ink: #1d1b18; --muted: #6b665e;
+    --line: #e4dfd5; --accent: #1f6f5c; --accent-ink: #ffffff; --err: #b3261e; --off: #9a948a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #161513; --card: #1f1d1a; --ink: #f2eee6; --muted: #a29b8e; --line: #34312c; --accent: #4fb89c; --accent-ink: #0e1a16; --err: #f2b8b5; --off: #8a847a; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 960px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  h2 { font-size: 1.05rem; margin: 0 0 12px; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  .sub a { color: var(--accent); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+  label { display: block; font-size: .875rem; font-weight: 600; margin: 12px 0 4px; }
+  input, select { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; background: var(--bg); color: var(--ink); }
+  .cols { display: grid; gap: 0 12px; grid-template-columns: 1fr; }
+  @media (min-width: 760px) { .cols { grid-template-columns: 1fr 1fr; } .cols .wide { grid-column: 1 / -1; } }
+  .btn { padding: 9px 14px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); font: inherit; font-weight: 600; cursor: pointer; }
+  .btn.ghost { background: transparent; color: var(--accent); }
+  .btn.small { padding: 6px 10px; font-size: .875rem; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; align-items: center; }
+  .msg { font-size: .875rem; min-height: 1.3em; margin-top: 8px; }
+  .msg.err { color: var(--err); }
+  .msg.ok { color: var(--accent); }
+  .link { border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 12px; background: var(--card); }
+  .link.off { opacity: .75; }
+  .link header { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .slug { font-weight: 700; word-break: break-all; }
+  .badge { font-size: .75rem; border: 1px solid var(--line); border-radius: 99px; padding: 1px 8px; color: var(--muted); }
+  .badge.off { color: var(--off); }
+  .stats { color: var(--muted); font-size: .875rem; }
+  .empty { color: var(--muted); }
+  code { background: var(--bg); border: 1px solid var(--line); padding: 1px 5px; border-radius: 4px; word-break: break-all; font-size: .8125rem; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Painel de links</h1>
+  <p class="sub">Crie e edite os destinos dos QR codes. O QR impresso não muda: só o destino. <a href="/">Voltar ao gerador</a></p>
+
+  <section class="card" id="login">
+    <h2>Entrar</h2>
+    <form id="login-form">
+      <label for="token">Token de acesso</label>
+      <input id="token" type="password" autocomplete="current-password" required>
+      <div class="msg err" id="login-msg" role="alert"></div>
+      <div class="row"><button class="btn" type="submit">Entrar</button></div>
+    </form>
+  </section>
+
+  <div id="app" hidden>
+    <section class="card">
+      <h2>Novo link</h2>
+      <form id="new-form" autocomplete="off">
+        <div class="cols">
+          <div>
+            <label for="n-slug">Código (vai no QR)</label>
+            <input id="n-slug" placeholder="padaria-joao" required>
+          </div>
+          <div>
+            <label for="n-vertical">Tipo de negócio</label>
+            <select id="n-vertical">
+              <option value="">Não informar</option>
+              <option value="restaurante">Restaurante</option>
+              <option value="hospedagem">Hospedagem</option>
+            </select>
+          </div>
+          <div class="wide">
+            <label for="n-dest">Destino</label>
+            <input id="n-dest" type="url" placeholder="https://..." required>
+          </div>
+          <div class="wide">
+            <label for="n-label">Nome do cliente (só para você)</label>
+            <input id="n-label" placeholder="Padaria do João">
+          </div>
+        </div>
+        <div class="msg" id="new-msg" role="alert"></div>
+        <div class="row"><button class="btn" type="submit">Criar link</button></div>
+      </form>
+    </section>
+
+    <section>
+      <div class="row" style="justify-content: space-between; margin-top: 0">
+        <h2 style="margin:0">Links</h2>
+        <button class="btn ghost small" id="logout" type="button">Sair</button>
+      </div>
+      <div id="list" style="margin-top: 12px"></div>
+    </section>
+  </div>
+</main>
+
+<script src="vendor/qrcode.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'admin-token';
+  var token = '';
+  try { token = sessionStorage.getItem(KEY) || ''; } catch (e) {}
+
+  function setMsg(el, text, kind) {
+    el.textContent = text || '';
+    el.className = 'msg' + (kind ? ' ' + kind : '');
+  }
+
+  function api(path, opts) {
+    opts = opts || {};
+    return fetch(path, {
+      method: opts.method || 'GET',
+      headers: { 'authorization': 'Bearer ' + token, 'content-type': 'application/json' },
+      body: opts.body ? JSON.stringify(opts.body) : undefined,
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (data) {
+        if (r.status === 401) { var e = new Error('Token inválido ou painel não configurado.'); e.auth = true; throw e; }
+        if (!r.ok) throw new Error(data.error || 'Erro ' + r.status);
+        return data;
+      });
+    });
+  }
+
+  function showApp(on) {
+    $('login').hidden = on;
+    $('app').hidden = !on;
+  }
+
+  function qrSvg(text) {
+    var qr = qrcode(0, 'M');
+    qr.addData(text, 'Byte');
+    qr.make();
+    return qr.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
+  }
+
+  function download(name, svg) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function el(tag, props, children) {
+    var n = document.createElement(tag);
+    Object.keys(props || {}).forEach(function (k) {
+      if (k === 'text') n.textContent = props[k];
+      else if (k === 'class') n.className = props[k];
+      else n[k] = props[k];
+    });
+    (children || []).forEach(function (c) { n.appendChild(c); });
+    return n;
+  }
+
+  function linkCard(l) {
+    var url = location.origin + '/r/' + l.slug;
+    var msg = el('div', { class: 'msg', role: 'alert' });
+
+    var dest = el('input', { type: 'url', value: l.destination });
+    var label = el('input', { value: l.label || '' });
+    var vertical = el('select');
+    [['', 'Não informar'], ['restaurante', 'Restaurante'], ['hospedagem', 'Hospedagem']].forEach(function (o) {
+      var opt = el('option', { value: o[0], text: o[1] });
+      if ((l.vertical || '') === o[0]) opt.selected = true;
+      vertical.appendChild(opt);
+    });
+
+    var save = el('button', { class: 'btn small', type: 'button', text: 'Salvar' });
+    save.addEventListener('click', function () {
+      save.disabled = true;
+      api('/api/links/' + encodeURIComponent(l.slug), {
+        method: 'PATCH',
+        body: { destination: dest.value, label: label.value, vertical: vertical.value || null },
+      }).then(function () { setMsg(msg, 'Salvo. O mesmo QR já aponta para o novo destino.', 'ok'); })
+        .catch(function (e) { setMsg(msg, e.message, 'err'); })
+        .then(function () { save.disabled = false; });
+    });
+
+    var toggle = el('button', { class: 'btn ghost small', type: 'button', text: l.active ? 'Desativar' : 'Reativar' });
+    toggle.addEventListener('click', function () {
+      if (l.active && !confirm('Desativar? O QR impresso passará a mostrar "Link não encontrado" até você reativar.')) return;
+      api('/api/links/' + encodeURIComponent(l.slug), { method: 'PATCH', body: { active: !l.active } })
+        .then(load).catch(function (e) { setMsg(msg, e.message, 'err'); });
+    });
+
+    var dl = el('button', { class: 'btn ghost small', type: 'button', text: 'Baixar QR (SVG)' });
+    dl.addEventListener('click', function () { download('qr-' + l.slug + '.svg', qrSvg(url)); });
+
+    var copy = el('button', { class: 'btn ghost small', type: 'button', text: 'Copiar endereço' });
+    copy.addEventListener('click', function () {
+      (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject())
+        .then(function () { setMsg(msg, 'Endereço copiado.', 'ok'); })
+        .catch(function () { setMsg(msg, url, ''); });
+    });
+
+    var head = el('header', {}, [
+      el('span', { class: 'slug', text: l.slug }),
+      el('span', {}, [
+        el('span', { class: 'badge' + (l.active ? '' : ' off'), text: l.active ? 'ativo' : 'desativado' }),
+      ]),
+    ]);
+
+    var card = el('div', { class: 'link' + (l.active ? '' : ' off') }, [
+      head,
+      el('div', { class: 'stats', text: l.scans + (l.scans === 1 ? ' scan' : ' scans') + ' · ' + url }),
+      el('label', { text: 'Destino' }), dest,
+      el('div', { class: 'cols' }, [
+        el('div', {}, [el('label', { text: 'Nome do cliente' }), label]),
+        el('div', {}, [el('label', { text: 'Tipo de negócio' }), vertical]),
+      ]),
+      el('div', { class: 'row' }, [save, toggle, dl, copy]),
+      msg,
+    ]);
+    return card;
+  }
+
+  function render(links) {
+    var list = $('list');
+    list.textContent = '';
+    if (!links.length) { list.appendChild(el('p', { class: 'empty', text: 'Nenhum link ainda. Crie o primeiro acima.' })); return; }
+    links.forEach(function (l) { list.appendChild(linkCard(l)); });
+  }
+
+  function load() {
+    return api('/api/links').then(function (d) { render(d.links); showApp(true); })
+      .catch(function (e) {
+        if (e.auth) { try { sessionStorage.removeItem(KEY); } catch (x) {} token = ''; showApp(false); setMsg($('login-msg'), e.message, 'err'); }
+        else { showApp(true); setMsg($('new-msg'), e.message, 'err'); }
+      });
+  }
+
+  $('login-form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    token = $('token').value.trim();
+    setMsg($('login-msg'), '');
+    api('/api/links').then(function (d) {
+      try { sessionStorage.setItem(KEY, token); } catch (e) {}
+      $('token').value = '';
+      render(d.links); showApp(true);
+    }).catch(function (e) { token = ''; setMsg($('login-msg'), e.message, 'err'); });
+  });
+
+  $('logout').addEventListener('click', function () {
+    try { sessionStorage.removeItem(KEY); } catch (e) {}
+    token = ''; showApp(false);
+  });
+
+  $('new-form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    setMsg($('new-msg'), '');
+    api('/api/links', { method: 'POST', body: {
+      slug: $('n-slug').value, destination: $('n-dest').value,
+      label: $('n-label').value, vertical: $('n-vertical').value || null,
+    } }).then(function () {
+      $('new-form').reset();
+      setMsg($('new-msg'), 'Link criado.', 'ok');
+      return load();
+    }).catch(function (e) { setMsg($('new-msg'), e.message, 'err'); });
+  });
+
+  if (token) load();
+})();
+</script>
+</body>
+</html>

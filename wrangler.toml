@@ -7,7 +7,7 @@ directory = "./public"
 binding = "ASSETS"
 # Chamadas que não casam com um arquivo estático caem no Worker (rota /r/<slug>)
 not_found_handling = "none"
-run_worker_first = ["/r/*"]
+run_worker_first = ["/r/*", "/api/*"]
 
 [[d1_databases]]
 binding = "DB"

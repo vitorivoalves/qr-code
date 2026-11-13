@@ -5,7 +5,7 @@ QR codes para negócios locais (hospedagem e restaurantes), rodando em Cloudflar
 - **QR de Wi-Fi:** gerado inteiramente no navegador (a senha não vai ao servidor), com botão de placa A5 para imprimir.
 - **QR de link editável:** o QR aponta para `https://seudominio/r/<slug>`; o Worker consulta o destino no banco, registra o scan (só slug e horário, sem IP) e redireciona com `302`. Trocar o destino não exige reimprimir.
 
-Este é um preview para avaliação: não há painel nem login nem cobrança. Links são criados por comando.
+Este é um preview para avaliação. Há um painel simples em `/admin` para criar e editar links, protegido por um token. Ainda não há cobrança nem contas de clientes.
 
 ## Estado
 
@@ -13,8 +13,9 @@ Este é um preview para avaliação: não há painel nem login nem cobrança. Li
 | --- | --- |
 | Gerador de Wi-Fi + placa A5 (`public/`) | Testado no navegador; o QR gerado foi decodificado e confere com o texto esperado |
 | Formato e escape do Wi-Fi, validação de links (`public/wifi.js`) | 7 testes unitários passando (`npm test`) |
-| Redirecionador (`src/worker.js`) | Lógica de rota e validação testada; **não foi executado contra o D1 nem implantado** |
-| Painel, login, cobrança, nota fiscal | Não existem (próxima fase, só depois da validação com clientes) |
+| Redirecionador e API do painel (`src/worker.js`) | 14 testes unitários (`npm test`) e teste de ponta a ponta com `wrangler dev` e D1 local: criar, editar, desativar, contar scans, 401 sem token. **Não foi implantado na Cloudflare** |
+| Painel `/admin` (`public/admin.html`) | Testado no navegador contra o `wrangler dev`: login, criar, salvar, baixar QR |
+| Cobrança, contas de clientes, nota fiscal | Não existem (próxima fase, só depois da validação com clientes) |
 
 ## Como rodar
 
@@ -23,11 +24,19 @@ npm install
 npx wrangler login
 npx wrangler d1 create qr-db          # copie o database_id para wrangler.toml
 npm run db:init                       # cria as tabelas no banco remoto
-npm run dev                           # teste local
+npx wrangler secret put ADMIN_TOKEN   # token do painel (mín. 12 caracteres; use um valor longo e aleatório)
 npm run deploy                        # publica
 ```
 
-Criar e editar links (sem painel):
+Teste local: crie um arquivo `.dev.vars` com `ADMIN_TOKEN=um-token-de-teste-123`, rode `npm run db:init:local` e depois `npm run dev`.
+
+## Painel (`/admin`)
+
+Entre com o token. Você pode criar links, trocar o destino, o nome e o tipo de negócio, desativar/reativar, ver o número de scans e baixar o QR em SVG. O código do link não muda depois de criado (é o que está impresso no QR) e não há botão de excluir, de propósito: desativar é reversível, apagar não.
+
+Segurança: sem `ADMIN_TOKEN` configurado (ou com menos de 12 caracteres), a API recusa tudo. O token fica só na sessão do navegador (`sessionStorage`) e é enviado em cada chamada. É um acesso de um único usuário para a fase de teste; para vários usuários, use contas com login ou o Cloudflare Access.
+
+Alternativa por linha de comando, sem o painel:
 
 ```bash
 npx wrangler d1 execute qr-db --remote --command \
