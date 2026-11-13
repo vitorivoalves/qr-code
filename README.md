@@ -30,6 +30,12 @@ npm run deploy                        # publica
 
 Teste local: crie um arquivo `.dev.vars` com `ADMIN_TOKEN=um-token-de-teste-123`, rode `npm run db:init:local` e depois `npm run dev`.
 
+## Preview no GitHub Pages
+
+O workflow `.github/workflows/pages.yml` publica a pasta `public/` (sem o painel) em `https://vitorivoalves.github.io/qr-code/`. No Pages só funciona a parte estática: o gerador de Wi-Fi com a placa A5 e a prévia do QR de link. O painel e o redirecionamento `/r/<slug>` precisam do Worker da Cloudflare e **não funcionam no Pages**.
+
+Para ativar uma vez: no GitHub, Settings > Pages > Source: **GitHub Actions**. Depois, cada push em `main` atualiza o site.
+
 ## Painel (`/admin`)
 
 Entre com o token. Você pode criar links, trocar o destino, o nome e o tipo de negócio, desativar/reativar, ver o número de scans e baixar o QR em SVG. O código do link não muda depois de criado (é o que está impresso no QR) e não há botão de excluir, de propósito: desativar é reversível, apagar não.
