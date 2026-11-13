@@ -1,0 +1,17 @@
+{
+  "name": "qr-locais",
+  "version": "0.1.0-preview",
+  "private": true,
+  "type": "module",
+  "description": "QR codes para negócios locais: Wi-Fi (gerado no navegador) e links editáveis (redirecionador em Cloudflare Workers + D1).",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node --test test/*.test.js",
+    "db:init": "wrangler d1 execute qr-db --remote --file=schema.sql",
+    "db:init:local": "wrangler d1 execute qr-db --local --file=schema.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  }
+}

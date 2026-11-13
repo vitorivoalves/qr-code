@@ -1,0 +1,16 @@
+name = "qr-locais"
+main = "src/worker.js"
+compatibility_date = "2026-11-01"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+# Chamadas que não casam com um arquivo estático caem no Worker (rota /r/<slug>)
+not_found_handling = "none"
+run_worker_first = ["/r/*"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "qr-db"
+# Depois de `npx wrangler d1 create qr-db`, cole aqui o database_id retornado:
+database_id = "COLE-O-ID-AQUI"

@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS links (
+  slug TEXT PRIMARY KEY,
+  destination TEXT NOT NULL,
+  label TEXT,
+  vertical TEXT, -- 'restaurante' ou 'hospedagem'
+  active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS scans (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug TEXT NOT NULL,
+  at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_scans_slug ON scans(slug);
