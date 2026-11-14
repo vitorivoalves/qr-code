@@ -3,136 +3,157 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<meta name="description" content="Gere QR codes de Wi-Fi e links editáveis para o seu negócio, com placa pronta para imprimir.">
 <title>QR para negócios locais</title>
-<style>
-  :root {
-    --bg: #faf8f4; --card: #ffffff; --ink: #1d1b18; --muted: #6b665e;
-    --line: #e4dfd5; --accent: #1f6f5c; --accent-ink: #ffffff; --err: #b3261e;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #161513; --card: #1f1d1a; --ink: #f2eee6; --muted: #a29b8e; --line: #34312c; --accent: #4fb89c; --accent-ink: #0e1a16; --err: #f2b8b5; }
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  main { max-width: 960px; margin: 0 auto; padding: 24px 16px 64px; }
-  h1 { font-size: 1.5rem; margin: 0 0 4px; }
-  .sub { color: var(--muted); margin: 0 0 24px; }
-  .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-  .tabs button { flex: 1; padding: 10px 12px; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 8px; font: inherit; cursor: pointer; }
-  .tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
-  .grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
-  @media (min-width: 760px) { .grid { grid-template-columns: 1fr 1fr; } }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
-  label { display: block; font-size: .875rem; font-weight: 600; margin: 12px 0 4px; }
-  label:first-child { margin-top: 0; }
-  input, select { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; background: var(--bg); color: var(--ink); }
-  .check { display: flex; align-items: center; gap: 8px; font-weight: 400; margin-top: 12px; }
-  .check input { width: auto; }
-  .row { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
-  .btn { padding: 10px 14px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); font: inherit; font-weight: 600; cursor: pointer; }
-  .btn.ghost { background: transparent; color: var(--accent); }
-  .btn:disabled { opacity: .45; cursor: not-allowed; }
-  .error { color: var(--err); font-size: .875rem; min-height: 1.3em; margin-top: 8px; }
-  .hint { color: var(--muted); font-size: .8125rem; margin-top: 6px; }
-  .preview { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-height: 280px; }
-  .preview svg { width: 100%; max-width: 280px; height: auto; background: #fff; padding: 8px; border-radius: 8px; }
-  .empty { color: var(--muted); text-align: center; }
-  code { background: var(--bg); border: 1px solid var(--line); padding: 1px 5px; border-radius: 4px; word-break: break-all; }
-  [hidden] { display: none !important; }
-
-  /* Placa para imprimir (A5) */
-  #plate { display: none; }
-  @media print {
-    @page { size: A5 portrait; margin: 0; }
-    body { background: #fff; }
-    main { display: none; }
-    #plate { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; width: 148mm; height: 210mm; padding: 14mm; color: #000; font-family: system-ui, "Segoe UI", sans-serif; }
-    #plate h2 { font-size: 30pt; margin: 0 0 6mm; line-height: 1.15; }
-    #plate .qr svg { width: 100mm; height: 100mm; }
-    #plate p { font-size: 17pt; margin: 6mm 0 0; }
-    #plate .net { font-size: 13pt; color: #444; margin-top: 3mm; }
-  }
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<main>
-  <h1>QR para negócios locais</h1>
-  <p class="sub">Versão preview. Gere o QR de Wi-Fi para imprimir ou veja como fica o QR de um link editável.</p>
+<a class="skip" href="#conteudo">Ir para o conteúdo</a>
 
-  <div class="tabs" role="tablist">
-    <button role="tab" id="tab-wifi" aria-selected="true" aria-controls="panel-wifi">Wi-Fi + placa</button>
-    <button role="tab" id="tab-link" aria-selected="false" aria-controls="panel-link">Link editável</button>
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="#topo">QR Locais</a>
+    <nav class="nav" aria-label="Principal">
+      <a href="#wifi">Wi-Fi</a>
+      <a href="#link">Link editável</a>
+      <a href="#como-funciona">Como funciona</a>
+      <a href="admin.html" id="nav-admin">Painel</a>
+    </nav>
   </div>
+</header>
 
-  <!-- Wi-Fi -->
-  <section id="panel-wifi" role="tabpanel" class="grid">
-    <form class="card" id="wifi-form" autocomplete="off">
-      <label for="venue">Nome do negócio (aparece na placa)</label>
-      <input id="venue" placeholder="Ex.: Padaria do João">
-
-      <label for="preset">Tipo de negócio</label>
-      <select id="preset">
-        <option value="hospedagem">Hospedagem</option>
-        <option value="restaurante">Restaurante</option>
-      </select>
-
-      <label for="ssid">Nome da rede (SSID)</label>
-      <input id="ssid" required>
-
-      <label for="security">Segurança</label>
-      <select id="security">
-        <option value="WPA">WPA / WPA2 / WPA3</option>
-        <option value="WEP">WEP</option>
-        <option value="nopass">Sem senha</option>
-      </select>
-
-      <div id="pw-wrap">
-        <label for="password">Senha</label>
-        <input id="password" type="text">
+<main id="conteudo">
+  <section class="hero" id="topo">
+    <div class="wrap">
+      <div>
+        <h1>QR codes que o seu negócio pode trocar sem reimprimir</h1>
+        <p class="lead">Placa de Wi-Fi pronta para imprimir e links que você muda quando quiser, para hospedagens e restaurantes.</p>
+        <div class="row">
+          <a class="btn" href="#wifi">Criar QR de Wi-Fi</a>
+          <a class="btn ghost" href="#link">Criar link editável</a>
+        </div>
       </div>
-
-      <label class="check"><input type="checkbox" id="hidden"> Rede oculta</label>
-
-      <div class="error" id="wifi-error" role="alert"></div>
-      <div class="row">
-        <button class="btn" type="submit">Gerar QR</button>
-        <button class="btn ghost" type="button" id="print" disabled>Imprimir placa A5</button>
-        <button class="btn ghost" type="button" id="download-wifi" disabled>Baixar SVG</button>
+      <div class="stage">
+        <div class="plate" id="hero-plate" role="img" aria-label="Exemplo de placa com QR code que abre esta página"></div>
+        <p class="caption">Exemplo: escaneie para abrir esta página no celular.</p>
       </div>
-      <p class="hint">A senha é usada só no seu navegador para desenhar o QR. Nada é enviado ao servidor.</p>
-    </form>
-
-    <div class="card preview" id="wifi-preview"><div class="empty">O QR aparece aqui.</div></div>
+    </div>
   </section>
 
-  <!-- Link -->
-  <section id="panel-link" role="tabpanel" class="grid" hidden>
-    <form class="card" id="link-form" autocomplete="off">
-      <label for="base">Endereço do seu site</label>
-      <input id="base" type="url" placeholder="https://seudominio.com.br" required>
+  <section class="section" id="wifi">
+    <div class="wrap">
+      <h2>QR de Wi-Fi com placa A5</h2>
+      <p class="intro">Preencha os dados da rede. A placa se atualiza enquanto você digita.</p>
+      <div class="tool">
+        <form class="card" id="wifi-form" autocomplete="off">
+          <label for="venue">Nome do negócio (aparece na placa)</label>
+          <input id="venue" placeholder="Ex.: Padaria do João">
 
-      <label for="slug">Código do link</label>
-      <input id="slug" placeholder="padaria-joao" required>
-      <p class="hint">Letras, números e hífen. O destino se troca no banco de dados, sem reimprimir o QR.</p>
+          <label for="preset">Tipo de negócio</label>
+          <select id="preset">
+            <option value="hospedagem">Hospedagem</option>
+            <option value="restaurante">Restaurante</option>
+          </select>
 
-      <div class="error" id="link-error" role="alert"></div>
-      <div class="row">
-        <button class="btn" type="submit">Gerar QR</button>
-        <button class="btn ghost" type="button" id="download-link" disabled>Baixar SVG</button>
+          <label for="ssid">Nome da rede (SSID)</label>
+          <input id="ssid" required>
+
+          <label for="security">Segurança</label>
+          <select id="security">
+            <option value="WPA">WPA / WPA2 / WPA3</option>
+            <option value="WEP">WEP</option>
+            <option value="nopass">Sem senha</option>
+          </select>
+
+          <div id="pw-wrap">
+            <label for="password">Senha</label>
+            <input id="password" type="text">
+          </div>
+
+          <label class="check"><input type="checkbox" id="hidden"> Rede oculta</label>
+
+          <div class="msg" id="wifi-hint" role="status" aria-live="polite"></div>
+          <div class="row">
+            <button class="btn" type="button" id="print" disabled>Imprimir placa A5</button>
+            <button class="btn ghost" type="button" id="download-wifi" disabled>Baixar QR (SVG)</button>
+          </div>
+          <p class="hint">A senha é usada só no seu navegador para desenhar o QR. Nada é enviado ao servidor.</p>
+        </form>
+
+        <div class="stage">
+          <div class="plate" id="wifi-plate"></div>
+        </div>
       </div>
-    </form>
+    </div>
+  </section>
 
-    <div class="card preview" id="link-preview"><div class="empty">O QR aparece aqui.</div></div>
+  <section class="section" id="link">
+    <div class="wrap">
+      <h2>QR de link editável</h2>
+      <p class="intro">O QR aponta para um endereço fixo do seu site. Depois você troca o destino no painel e o mesmo QR impresso abre a página nova.</p>
+      <p class="notice" id="pages-note" hidden>Este endereço (GitHub Pages) só mostra a prévia. O redirecionamento dos links precisa do Worker da Cloudflare.</p>
+      <div class="tool">
+        <form class="card" id="link-form" autocomplete="off">
+          <label for="base">Endereço do seu site</label>
+          <input id="base" type="url" placeholder="https://seudominio.com.br">
+
+          <label for="slug">Código do link</label>
+          <input id="slug" placeholder="padaria-joao">
+          <p class="hint">Letras, números e hífen, até 64 caracteres.</p>
+
+          <div class="msg" id="link-hint" role="status" aria-live="polite"></div>
+          <div class="row">
+            <button class="btn" type="button" id="download-link" disabled>Baixar QR (SVG)</button>
+          </div>
+        </form>
+
+        <div class="stage">
+          <div class="plate" id="link-plate"></div>
+          <p class="caption" id="link-url"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="como-funciona">
+    <div class="wrap">
+      <h2>Como funciona</h2>
+      <p class="intro">Duas ferramentas, uma placa pronta e nenhum cadastro para começar.</p>
+      <div class="facts">
+        <div>
+          <h3>Wi-Fi sem servidor</h3>
+          <p>O QR de Wi-Fi é desenhado no seu navegador. A senha da rede não é enviada a nenhum servidor.</p>
+        </div>
+        <div>
+          <h3>Links que você troca</h3>
+          <p>O QR impresso aponta para um endereço fixo. Você muda o destino no painel, sem imprimir de novo.</p>
+        </div>
+        <div>
+          <h3>Placa pronta para imprimir</h3>
+          <p>Folha A5 com o nome do negócio, o QR grande e a instrução para escanear com a câmera.</p>
+        </div>
+      </div>
+    </div>
   </section>
 </main>
 
-<div id="plate" aria-hidden="true"></div>
+<footer class="foot">
+  <div class="wrap">
+    <p>Versão preview. Ainda sem cobrança nem contas de clientes.</p>
+    <p>QR gerado com <a href="https://github.com/kazuhikoarase/qrcode-generator">qrcode-generator</a> (licença MIT).</p>
+  </div>
+</footer>
+
+<div id="plate-print" aria-hidden="true"></div>
 
 <script src="vendor/qrcode.js"></script>
 <script type="module">
 import { buildWifiString, buildLinkUrl } from './wifi.js';
 
 const $ = (id) => document.getElementById(id);
+const onPages = location.hostname.endsWith('github.io');
+
 const PRESETS = {
   hospedagem: { title: (v) => v || 'Bem-vindo!', line: 'Aponte a câmera para conectar ao Wi-Fi' },
   restaurante: { title: (v) => v || 'Wi-Fi para clientes', line: 'Aponte a câmera para conectar ao Wi-Fi' },
@@ -145,10 +166,6 @@ function makeSvg(text) {
   return qr.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
 }
 
-function show(container, svg) {
-  container.innerHTML = svg;
-}
-
 function download(name, svg) {
   const blob = new Blob([svg], { type: 'image/svg+xml' });
   const a = document.createElement('a');
@@ -158,25 +175,39 @@ function download(name, svg) {
   URL.revokeObjectURL(a.href);
 }
 
-// Abas
-for (const which of ['wifi', 'link']) {
-  $('tab-' + which).addEventListener('click', () => {
-    for (const w of ['wifi', 'link']) {
-      $('tab-' + w).setAttribute('aria-selected', String(w === which));
-      $('panel-' + w).hidden = w !== which;
-    }
-  });
+// Desenha a placa dentro de um contêiner (título, QR ou espaço vazio, instrução, rede)
+function renderPlate(box, { title, svg, line, net, empty }) {
+  box.textContent = '';
+  const h = document.createElement('h3');
+  h.textContent = title;
+  const qr = document.createElement('div');
+  qr.className = 'qr' + (svg ? '' : ' blank');
+  if (svg) qr.innerHTML = svg; // svg gerado pela biblioteca, nunca texto digitado
+  else qr.textContent = empty || 'O QR aparece aqui';
+  box.append(h, qr);
+  if (line) { const p = document.createElement('p'); p.textContent = line; box.append(p); }
+  if (net) { const d = document.createElement('div'); d.className = 'net'; d.textContent = net; box.append(d); }
 }
+
+if (onPages) {
+  $('nav-admin').hidden = true;
+  $('pages-note').hidden = false;
+}
+
+// Exemplo do topo: QR desta própria página
+renderPlate($('hero-plate'), {
+  title: 'Escaneie para testar',
+  svg: makeSvg(location.href.split('#')[0]),
+  line: 'Aponte a câmera para abrir esta página',
+});
 
 // Wi-Fi
 let wifiSvg = '';
-$('security').addEventListener('change', () => {
+function updateWifi() {
+  const preset = PRESETS[$('preset').value];
+  const ssid = $('ssid').value.trim();
+  const touched = ssid || $('password').value;
   $('pw-wrap').hidden = $('security').value === 'nopass';
-});
-
-$('wifi-form').addEventListener('submit', (e) => {
-  e.preventDefault();
-  $('wifi-error').textContent = '';
   try {
     const text = buildWifiString({
       ssid: $('ssid').value,
@@ -185,55 +216,67 @@ $('wifi-form').addEventListener('submit', (e) => {
       hidden: $('hidden').checked,
     });
     wifiSvg = makeSvg(text);
-    show($('wifi-preview'), wifiSvg);
-    $('print').disabled = false;
-    $('download-wifi').disabled = false;
+    $('wifi-hint').textContent = '';
+    $('wifi-hint').className = 'msg';
   } catch (err) {
-    $('wifi-error').textContent = err.message;
+    wifiSvg = '';
+    $('wifi-hint').textContent = touched ? err.message : 'Preencha a rede e a senha para ver a placa.';
+    $('wifi-hint').className = touched ? 'msg err' : 'msg';
   }
-});
-
+  $('print').disabled = !wifiSvg;
+  $('download-wifi').disabled = !wifiSvg;
+  renderPlate($('wifi-plate'), {
+    title: preset.title($('venue').value.trim()),
+    svg: wifiSvg,
+    line: preset.line,
+    net: ssid ? 'Rede: ' + ssid : '',
+    empty: 'O QR do Wi-Fi aparece aqui',
+  });
+}
+$('wifi-form').addEventListener('input', updateWifi);
+$('wifi-form').addEventListener('change', updateWifi);
+$('wifi-form').addEventListener('submit', (e) => e.preventDefault());
 $('download-wifi').addEventListener('click', () => download('wifi-qr.svg', wifiSvg));
-
 $('print').addEventListener('click', () => {
-  const preset = PRESETS[$('preset').value];
-  const plate = $('plate');
-  plate.innerHTML = '';
-  const h = document.createElement('h2');
-  h.textContent = preset.title($('venue').value.trim());
-  const qr = document.createElement('div');
-  qr.className = 'qr';
-  qr.innerHTML = wifiSvg;
-  const p = document.createElement('p');
-  p.textContent = preset.line;
-  const net = document.createElement('div');
-  net.className = 'net';
-  net.textContent = 'Rede: ' + $('ssid').value;
-  plate.append(h, qr, p, net);
+  const sheet = $('plate-print');
+  sheet.textContent = '';
+  const copy = $('wifi-plate').cloneNode(true);
+  copy.removeAttribute('id');
+  sheet.append(copy);
   window.print();
 });
+updateWifi();
 
-// Link
+// Link editável
 let linkSvg = '';
-$('link-form').addEventListener('submit', (e) => {
-  e.preventDefault();
-  $('link-error').textContent = '';
+if (!onPages && /^https?:$/.test(location.protocol)) $('base').value = location.origin;
+function updateLink() {
+  const base = $('base').value.trim();
+  const slug = $('slug').value.trim();
+  let url = '';
   try {
-    const url = buildLinkUrl($('base').value, $('slug').value);
+    url = buildLinkUrl(base, slug);
     linkSvg = makeSvg(url);
-    $('link-preview').innerHTML = '';
-    const wrap = document.createElement('div');
-    wrap.innerHTML = linkSvg;
-    const code = document.createElement('code');
-    code.textContent = url;
-    $('link-preview').append(wrap.firstChild, code);
-    $('download-link').disabled = false;
+    $('link-hint').textContent = '';
+    $('link-hint').className = 'msg';
   } catch (err) {
-    $('link-error').textContent = err.message;
+    linkSvg = '';
+    $('link-hint').textContent = base || slug ? err.message : 'Informe o endereço e o código para ver o QR.';
+    $('link-hint').className = base || slug ? 'msg err' : 'msg';
   }
-});
-
+  $('download-link').disabled = !linkSvg;
+  $('link-url').textContent = url;
+  renderPlate($('link-plate'), {
+    title: slug ? slug : 'Seu link',
+    svg: linkSvg,
+    line: 'Aponte a câmera para abrir o link',
+    empty: 'O QR do link aparece aqui',
+  });
+}
+$('link-form').addEventListener('input', updateLink);
+$('link-form').addEventListener('submit', (e) => e.preventDefault());
 $('download-link').addEventListener('click', () => download('link-qr.svg', linkSvg));
+updateLink();
 </script>
 </body>
 </html>
